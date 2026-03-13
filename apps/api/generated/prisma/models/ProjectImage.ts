@@ -1281,6 +1281,11 @@ export type ProjectImageFindManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Skip the first `n` ProjectImages.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of ProjectImages.
+   */
   distinct?: Prisma.ProjectImageScalarFieldEnum | Prisma.ProjectImageScalarFieldEnum[]
 }
 

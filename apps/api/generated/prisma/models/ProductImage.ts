@@ -1052,6 +1052,11 @@ export type ProductImageFindManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Skip the first `n` ProductImages.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of ProductImages.
+   */
   distinct?: Prisma.ProductImageScalarFieldEnum | Prisma.ProductImageScalarFieldEnum[]
 }
 

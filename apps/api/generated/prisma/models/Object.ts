@@ -1120,6 +1120,11 @@ export type ObjectFindManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Skip the first `n` Objects.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Objects.
+   */
   distinct?: Prisma.ObjectScalarFieldEnum | Prisma.ObjectScalarFieldEnum[]
 }
 

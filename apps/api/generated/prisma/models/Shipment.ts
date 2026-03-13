@@ -1408,6 +1408,11 @@ export type ShipmentFindManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Skip the first `n` Shipments.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Shipments.
+   */
   distinct?: Prisma.ShipmentScalarFieldEnum | Prisma.ShipmentScalarFieldEnum[]
 }
 
