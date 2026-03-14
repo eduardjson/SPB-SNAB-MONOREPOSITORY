@@ -73,3 +73,5 @@ node_modules/.cache/turbo
 # Yalc
 .yalc/
 yalc.lock
+
+apps/api/generated/*
