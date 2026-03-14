@@ -1,11 +1,21 @@
- compiled output
+# compiled output
+dist/
 **/dist
 **/build
 **/dist-ssr
 *.local
 
+# Dependencies - ИСПРАВЛЕНО!
+node_modules/
+**/node_modules/
+apps/*/node_modules/
+packages/*/node_modules/
+.pnpm-store
+.yarn
+.lerna
+
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
@@ -45,6 +55,7 @@ Thumbs.db
 # Temp directories
 .temp
 .tmp
+**/.cache
 
 # Runtime data
 pids
@@ -55,15 +66,10 @@ pids
 # Diagnostic reports
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-# Package managers
-node_modules
-.pnpm-store
-.yarn
-.lerna
-
 # Prisma generated
 **/generated/prisma
 prisma/**/generated
+apps/api/generated/*
 
 # Turbo
 .turbo
@@ -73,5 +79,3 @@ node_modules/.cache/turbo
 # Yalc
 .yalc/
 yalc.lock
-
-apps/api/generated/*
