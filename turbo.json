@@ -12,6 +12,7 @@
       "outputs": ["dist/**", ".next/**", "build/**"],
       "env": ["NODE_ENV", "API_URL", "VITE_API_URL"]
     },
+
     "dev": {
       "cache": false,
       "persistent": true
