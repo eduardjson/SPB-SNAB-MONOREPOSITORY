@@ -1,4 +1,4 @@
-import { DocumentType } from '../../../shared/enums';
+import { DocumentType } from '@prisma/client';
 
 export interface ProjectDocumentDto {
   id: string;

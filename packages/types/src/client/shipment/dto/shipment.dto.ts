@@ -1,4 +1,4 @@
-import { ShipmentStatus } from '../../../shared/enums';
+import { ShipmentStatus } from '@prisma/client';
 
 export interface ShipmentDto {
   id: string;
