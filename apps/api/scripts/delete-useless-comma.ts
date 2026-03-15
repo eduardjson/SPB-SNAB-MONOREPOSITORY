@@ -11,8 +11,7 @@ function fixEnumsFile() {
 
     // Разбиваем на строки
     let lines = content.split('\n');
-    let fixedLines = [];
-    let skipNextEmpty = false;
+    let fixedLines: string[] = []; // Явно указываем тип массива
 
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i];
