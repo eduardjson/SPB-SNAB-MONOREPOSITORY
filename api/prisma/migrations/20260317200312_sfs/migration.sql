@@ -47,7 +47,7 @@ CREATE TABLE "products" (
     "category" TEXT NOT NULL,
     "manufacturer" TEXT NOT NULL,
     "imageUrl" TEXT NOT NULL,
-    "quantity" INTEGER NOT NULL,
+    "unit" TEXT NOT NULL DEFAULT 'шт',
 
     CONSTRAINT "products_pkey" PRIMARY KEY ("id")
 );
@@ -102,6 +102,10 @@ CREATE TABLE "stock_items" (
     "product_id" TEXT NOT NULL,
     "warehouse_id" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL DEFAULT 0,
+    "purchase_price" DOUBLE PRECISION,
+    "estimate_price" DOUBLE PRECISION,
+    "sale_price" DOUBLE PRECISION,
+    "discount" DOUBLE PRECISION DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
