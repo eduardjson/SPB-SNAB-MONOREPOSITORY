@@ -14,25 +14,24 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from "@mui/material";
-import React, { useState } from "react";
+} from '@mui/material';
+import React, { useState } from 'react';
 
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
-import { useGetAllPriceListsQuery } from "../../services";
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
+import { useGetAllPriceListsQuery } from '../../services';
 
 export const PriceListTable: React.FC = () => {
   const { data, isLoading, error } = useGetAllPriceListsQuery();
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({
-    warehouse: "",
-    category: "",
-    manufacturer: "",
+    warehouse: '',
+    category: '',
+    manufacturer: '',
   });
 
   if (isLoading) return <Typography>Загрузка прайс-листов...</Typography>;
-  if (error)
-    return <Typography color="error">Ошибка загрузки данных</Typography>;
+  if (error) return <Typography color="error">Ошибка загрузки данных</Typography>;
 
   // Группируем товары по складам
   const groupedByWarehouse = data?.items.reduce(
@@ -43,11 +42,11 @@ export const PriceListTable: React.FC = () => {
       acc[item.warehouseName].push(item);
       return acc;
     },
-    {} as Record<string, typeof data.items>,
+    {} as Record<string, typeof data.items>
   );
 
   const toggleRow = (warehouseName: string) => {
-    setExpandedRows(prev => {
+    setExpandedRows((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(warehouseName)) {
         newSet.delete(warehouseName);
@@ -59,14 +58,12 @@ export const PriceListTable: React.FC = () => {
   };
 
   // Получаем уникальные значения для фильтров
-  const warehouses = [...new Set(data?.items.map(item => item.warehouseName))];
-  const categories = [...new Set(data?.items.map(item => item.category))];
-  const manufacturers = [
-    ...new Set(data?.items.map(item => item.manufacturer)),
-  ];
+  const warehouses = [...new Set(data?.items.map((item) => item.warehouseName))];
+  const categories = [...new Set(data?.items.map((item) => item.category))];
+  const manufacturers = [...new Set(data?.items.map((item) => item.manufacturer))];
 
   // Фильтруем товары
-  const filteredItems = data?.items.filter(item => {
+  const filteredItems = data?.items.filter((item) => {
     return (
       (!filters.warehouse || item.warehouseName === filters.warehouse) &&
       (!filters.category || item.category === filters.category) &&
@@ -76,21 +73,19 @@ export const PriceListTable: React.FC = () => {
 
   // Форматирование даты
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "dd.MM.yyyy", { locale: ru });
+    return format(new Date(dateString), 'dd.MM.yyyy', { locale: ru });
   };
 
   // Форматирование цены
   const formatPrice = (price?: number) => {
-    return price ? price.toLocaleString("ru-RU") + " ₽" : "—";
+    return price ? price.toLocaleString('ru-RU') + ' ₽' : '—';
   };
 
   return (
-    <Box>
-      {/* Фильтры */}
+    <div className="flex flex-col gap-4">
+      <Typography variant="h5">Фильтры</Typography>
+
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Фильтры
-        </Typography>
         <Grid container spacing={2}>
           <Grid item xs={4}>
             <FormControl fullWidth>
@@ -98,12 +93,10 @@ export const PriceListTable: React.FC = () => {
               <Select
                 value={filters.warehouse}
                 label="Склад"
-                onChange={e =>
-                  setFilters({ ...filters, warehouse: e.target.value })
-                }
+                onChange={(e) => setFilters({ ...filters, warehouse: e.target.value })}
               >
                 <MenuItem value="">Все склады</MenuItem>
-                {warehouses.map(warehouse => (
+                {warehouses.map((warehouse) => (
                   <MenuItem key={warehouse} value={warehouse}>
                     {warehouse}
                   </MenuItem>
@@ -117,12 +110,10 @@ export const PriceListTable: React.FC = () => {
               <Select
                 value={filters.category}
                 label="Категория"
-                onChange={e =>
-                  setFilters({ ...filters, category: e.target.value })
-                }
+                onChange={(e) => setFilters({ ...filters, category: e.target.value })}
               >
                 <MenuItem value="">Все категории</MenuItem>
-                {categories.map(category => (
+                {categories.map((category) => (
                   <MenuItem key={category} value={category}>
                     {category}
                   </MenuItem>
@@ -136,12 +127,10 @@ export const PriceListTable: React.FC = () => {
               <Select
                 value={filters.manufacturer}
                 label="Производитель"
-                onChange={e =>
-                  setFilters({ ...filters, manufacturer: e.target.value })
-                }
+                onChange={(e) => setFilters({ ...filters, manufacturer: e.target.value })}
               >
                 <MenuItem value="">Все производители</MenuItem>
-                {manufacturers.map(manufacturer => (
+                {manufacturers.map((manufacturer) => (
                   <MenuItem key={manufacturer} value={manufacturer}>
                     {manufacturer}
                   </MenuItem>
@@ -156,7 +145,7 @@ export const PriceListTable: React.FC = () => {
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
               <TableCell width="40px"></TableCell>
               <TableCell>Товар</TableCell>
               <TableCell>Производитель</TableCell>
@@ -187,39 +176,23 @@ export const PriceListTable: React.FC = () => {
                 </TableCell>
                 <TableCell>{item.manufacturer}</TableCell>
                 <TableCell>{item.category}</TableCell>
-                <TableCell align="right">
-                  {formatPrice(item.purchasePrice)}
-                </TableCell>
-                <TableCell align="right">
-                  {formatPrice(item.estimatePrice)}
-                </TableCell>
-                <TableCell align="right">
-                  {formatPrice(item.salePrice)}
-                </TableCell>
-                <TableCell align="right">
-                  {item.discount ? `${item.discount}%` : "—"}
-                </TableCell>
+                <TableCell align="right">{formatPrice(item.purchasePrice)}</TableCell>
+                <TableCell align="right">{formatPrice(item.estimatePrice)}</TableCell>
+                <TableCell align="right">{formatPrice(item.salePrice)}</TableCell>
+                <TableCell align="right">{item.discount ? `${item.discount}%` : '—'}</TableCell>
                 <TableCell align="right">
                   <Chip
                     label={`${item.quantity} ${item.unit}`}
                     size="small"
-                    color={item.quantity > 10 ? "success" : "warning"}
+                    color={item.quantity > 10 ? 'success' : 'warning'}
                   />
                 </TableCell>
                 <TableCell>
                   <Box>
-                    <Typography
-                      variant="caption"
-                      display="block"
-                      color="textSecondary"
-                    >
+                    <Typography variant="caption" display="block" color="textSecondary">
                       Первое: {formatDate(item.firstArrivalDate)}
                     </Typography>
-                    <Typography
-                      variant="caption"
-                      display="block"
-                      color="textSecondary"
-                    >
+                    <Typography variant="caption" display="block" color="textSecondary">
                       Обновлено: {formatDate(item.lastUpdated)}
                     </Typography>
                   </Box>
@@ -233,10 +206,10 @@ export const PriceListTable: React.FC = () => {
       {/* Итоговая информация */}
       <Paper sx={{ p: 2, mt: 2 }}>
         <Typography variant="body2" color="textSecondary">
-          Всего позиций: {filteredItems?.length} | Сформировано:{" "}
+          Всего позиций: {filteredItems?.length} | Сформировано:{' '}
           {data?.generatedAt && formatDate(data.generatedAt)}
         </Typography>
       </Paper>
-    </Box>
+    </div>
   );
 };
