@@ -1,9 +1,9 @@
+import { Search as SearchIcon } from '@mui/icons-material';
 import {
   Box,
+  Card,
   Chip,
-  FormControl,
-  Grid,
-  InputLabel,
+  InputAdornment,
   MenuItem,
   Paper,
   Select,
@@ -13,203 +13,167 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Typography,
 } from '@mui/material';
-import React, { useState } from 'react';
-
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import React, { useMemo, useState } from 'react';
 import { useGetAllPriceListsQuery } from '../../services';
 
 export const PriceListTable: React.FC = () => {
   const { data, isLoading, error } = useGetAllPriceListsQuery();
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({
     warehouse: '',
     category: '',
     manufacturer: '',
+    search: '',
   });
 
-  if (isLoading) return <Typography>Загрузка прайс-листов...</Typography>;
-  if (error) return <Typography color="error">Ошибка загрузки данных</Typography>;
+  // Фильтрация
+  const filteredItems = useMemo(() => {
+    if (!data?.items) return [];
 
-  // Группируем товары по складам
-  const groupedByWarehouse = data?.items.reduce(
-    (acc, item) => {
-      if (!acc[item.warehouseName]) {
-        acc[item.warehouseName] = [];
-      }
-      acc[item.warehouseName].push(item);
-      return acc;
-    },
-    {} as Record<string, typeof data.items>
-  );
+    return data.items.filter((item) => {
+      const matchWarehouse = !filters.warehouse || item.warehouseName === filters.warehouse;
+      const matchCategory = !filters.category || item.category === filters.category;
+      const matchManufacturer = !filters.manufacturer || item.manufacturer === filters.manufacturer;
+      const matchSearch =
+        !filters.search || item.productName.toLowerCase().includes(filters.search.toLowerCase());
 
-  const toggleRow = (warehouseName: string) => {
-    setExpandedRows((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(warehouseName)) {
-        newSet.delete(warehouseName);
-      } else {
-        newSet.add(warehouseName);
-      }
-      return newSet;
+      return matchWarehouse && matchCategory && matchManufacturer && matchSearch;
     });
-  };
+  }, [data, filters]);
 
-  // Получаем уникальные значения для фильтров
-  const warehouses = [...new Set(data?.items.map((item) => item.warehouseName))];
-  const categories = [...new Set(data?.items.map((item) => item.category))];
-  const manufacturers = [...new Set(data?.items.map((item) => item.manufacturer))];
+  // Уникальные значения для фильтров
+  const warehouses = [...new Set(data?.items.map((i) => i.warehouseName) || [])];
+  const categories = [...new Set(data?.items.map((i) => i.category) || [])];
+  const manufacturers = [...new Set(data?.items.map((i) => i.manufacturer) || [])];
 
-  // Фильтруем товары
-  const filteredItems = data?.items.filter((item) => {
+  const formatPrice = (price?: number) => (price ? price.toLocaleString('ru-RU') + ' ₽' : '—');
+
+  if (isLoading) return <Typography sx={{ p: 2 }}>Загрузка...</Typography>;
+  if (error)
     return (
-      (!filters.warehouse || item.warehouseName === filters.warehouse) &&
-      (!filters.category || item.category === filters.category) &&
-      (!filters.manufacturer || item.manufacturer === filters.manufacturer)
+      <Typography sx={{ p: 2 }} color="error">
+        Ошибка загрузки
+      </Typography>
     );
-  });
-
-  // Форматирование даты
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd.MM.yyyy', { locale: ru });
-  };
-
-  // Форматирование цены
-  const formatPrice = (price?: number) => {
-    return price ? price.toLocaleString('ru-RU') + ' ₽' : '—';
-  };
 
   return (
-    <div className="flex flex-col gap-4">
-      <Typography variant="h5">Фильтры</Typography>
+    <Box className="flex flex-col gap-4">
+      <div className="flex flex-row justify-between h-9">
+        <Typography variant="h5">Прайс листы</Typography>
+      </div>
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+        <TextField
+          size="small"
+          placeholder="Поиск по товару"
+          value={filters.search}
+          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: 200 }}
+        />
 
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Grid container spacing={2}>
-          <Grid item xs={4}>
-            <FormControl fullWidth>
-              <InputLabel>Склад</InputLabel>
-              <Select
-                value={filters.warehouse}
-                label="Склад"
-                onChange={(e) => setFilters({ ...filters, warehouse: e.target.value })}
-              >
-                <MenuItem value="">Все склады</MenuItem>
-                {warehouses.map((warehouse) => (
-                  <MenuItem key={warehouse} value={warehouse}>
-                    {warehouse}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={4}>
-            <FormControl fullWidth>
-              <InputLabel>Категория</InputLabel>
-              <Select
-                value={filters.category}
-                label="Категория"
-                onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-              >
-                <MenuItem value="">Все категории</MenuItem>
-                {categories.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={4}>
-            <FormControl fullWidth>
-              <InputLabel>Производитель</InputLabel>
-              <Select
-                value={filters.manufacturer}
-                label="Производитель"
-                onChange={(e) => setFilters({ ...filters, manufacturer: e.target.value })}
-              >
-                <MenuItem value="">Все производители</MenuItem>
-                {manufacturers.map((manufacturer) => (
-                  <MenuItem key={manufacturer} value={manufacturer}>
-                    {manufacturer}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-      </Paper>
+        <Select
+          size="small"
+          value={filters.warehouse}
+          onChange={(e) => setFilters((f) => ({ ...f, warehouse: e.target.value }))}
+          displayEmpty
+          sx={{ minWidth: 120 }}
+        >
+          <MenuItem value="">Все склады</MenuItem>
+          {warehouses.map((w) => (
+            <MenuItem key={w} value={w}>
+              {w}
+            </MenuItem>
+          ))}
+        </Select>
 
-      {/* Таблица прайс-листов */}
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-              <TableCell width="40px"></TableCell>
-              <TableCell>Товар</TableCell>
-              <TableCell>Производитель</TableCell>
-              <TableCell>Категория</TableCell>
-              <TableCell align="right">Цена закупки</TableCell>
-              <TableCell align="right">Цена для сметы</TableCell>
-              <TableCell align="right">Цена для продажи</TableCell>
-              <TableCell align="right">Скидка</TableCell>
-              <TableCell align="right">Остаток</TableCell>
-              <TableCell>Поступление</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredItems?.map((item, index) => (
-              <TableRow key={index} hover>
-                <TableCell>
-                  <Chip
-                    label={item.warehouseName}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" fontWeight="medium">
-                    {item.productName}
-                  </Typography>
-                </TableCell>
-                <TableCell>{item.manufacturer}</TableCell>
-                <TableCell>{item.category}</TableCell>
-                <TableCell align="right">{formatPrice(item.purchasePrice)}</TableCell>
-                <TableCell align="right">{formatPrice(item.estimatePrice)}</TableCell>
-                <TableCell align="right">{formatPrice(item.salePrice)}</TableCell>
-                <TableCell align="right">{item.discount ? `${item.discount}%` : '—'}</TableCell>
-                <TableCell align="right">
-                  <Chip
-                    label={`${item.quantity} ${item.unit}`}
-                    size="small"
-                    color={item.quantity > 10 ? 'success' : 'warning'}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Box>
-                    <Typography variant="caption" display="block" color="textSecondary">
-                      Первое: {formatDate(item.firstArrivalDate)}
-                    </Typography>
-                    <Typography variant="caption" display="block" color="textSecondary">
-                      Обновлено: {formatDate(item.lastUpdated)}
-                    </Typography>
-                  </Box>
-                </TableCell>
+        <Select
+          size="small"
+          value={filters.category}
+          onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value }))}
+          displayEmpty
+          sx={{ minWidth: 120 }}
+        >
+          <MenuItem value="">Все категории</MenuItem>
+          {categories.map((c) => (
+            <MenuItem key={c} value={c}>
+              {c}
+            </MenuItem>
+          ))}
+        </Select>
+
+        <Select
+          size="small"
+          value={filters.manufacturer}
+          onChange={(e) => setFilters((f) => ({ ...f, manufacturer: e.target.value }))}
+          displayEmpty
+          sx={{ minWidth: 120 }}
+        >
+          <MenuItem value="">Все производители</MenuItem>
+          {manufacturers.map((m) => (
+            <MenuItem key={m} value={m}>
+              {m}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
+
+      <Card>
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ '& th': { fontWeight: 600, fontSize: '0.875rem' } }}>
+                <TableCell>Склад</TableCell>
+                <TableCell>Товар</TableCell>
+                <TableCell>Производитель</TableCell>
+                <TableCell>Категория</TableCell>
+                <TableCell align="right">Цена</TableCell>
+                <TableCell align="right">Остаток</TableCell>
+                <TableCell>Поступление</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {filteredItems.map((item, i) => (
+                <TableRow key={i} hover sx={{ '&:last-child td': { border: 0 } }}>
+                  <TableCell>
+                    <Chip label={item.warehouseName} size="small" variant="outlined" />
+                  </TableCell>
+                  <TableCell>{item.productName}</TableCell>
+                  <TableCell>{item.manufacturer}</TableCell>
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell align="right">{formatPrice(item.salePrice)}</TableCell>
+                  <TableCell align="right">
+                    <Chip
+                      label={`${item.quantity} ${item.unit}`}
+                      size="small"
+                      color={item.quantity > 0 ? 'success' : 'default'}
+                      variant={item.quantity > 0 ? 'filled' : 'outlined'}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="caption" color="textSecondary">
+                      {format(new Date(item.firstArrivalDate), 'dd.MM.yyyy')}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Card>
 
-      {/* Итоговая информация */}
-      <Paper sx={{ p: 2, mt: 2 }}>
-        <Typography variant="body2" color="textSecondary">
-          Всего позиций: {filteredItems?.length} | Сформировано:{' '}
-          {data?.generatedAt && formatDate(data.generatedAt)}
-        </Typography>
-      </Paper>
-    </div>
+      {/* Итого */}
+      <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+        Всего: {filteredItems.length} позиций
+      </Typography>
+    </Box>
   );
 };

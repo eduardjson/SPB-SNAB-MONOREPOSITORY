@@ -1,5 +1,14 @@
-import { Clear } from '@mui/icons-material';
-import { Button, Card, Chip, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { Clear, Search } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Chip,
+  InputAdornment,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+} from '@mui/material';
 import debounce from 'lodash/debounce';
 import React, { useEffect, useState } from 'react';
 import {
@@ -51,21 +60,29 @@ export const ProductFilter: React.FC = () => {
   };
 
   return (
-    <Card className="flex flex-col p-4 pt-6 gap-4">
-      <div className="flex flex-row flex-wrap justify-start gap-4">
+    <Box className="flex flex-col gap-4">
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
         <TextField
-          variant="outlined"
-          label="Поиск по названию"
+          size="small"
+          placeholder="Поиск по названию..."
           value={localSearch}
           onChange={handleSearchChange}
-          placeholder="Введите название товара..."
-          className="w-100"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: 250 }}
         />
+
         <Select
+          size="small"
           value={selectedManufacturer}
-          label="Производитель"
           onChange={handleManufacturerChange}
-          className="w-100"
+          displayEmpty
+          sx={{ minWidth: 160 }}
         >
           <MenuItem value="">Все производители</MenuItem>
           {manufacturers.map((manufacturer) => (
@@ -74,16 +91,26 @@ export const ProductFilter: React.FC = () => {
             </MenuItem>
           ))}
         </Select>
+
         <Button
+          size="small"
           variant="outlined"
-          color="secondary"
+          color="inherit"
           onClick={handleReset}
           startIcon={<Clear />}
-          className="w-60"
+          sx={{
+            minWidth: 130,
+            color: 'text.secondary',
+            borderColor: 'divider',
+            '&:hover': {
+              borderColor: 'text.primary',
+              bgcolor: 'transparent',
+            },
+          }}
         >
-          Сбросить фильтры
+          Сбросить
         </Button>
-      </div>
+      </Box>
       {hasActiveFilters() && (
         <div className="flex flex-row gap-4 align-middle">
           <Chip
@@ -101,7 +128,7 @@ export const ProductFilter: React.FC = () => {
           </Typography>
         </div>
       )}
-    </Card>
+    </Box>
   );
 };
 
