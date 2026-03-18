@@ -7,8 +7,6 @@ import {
 } from '@mui/icons-material';
 import {
   Alert,
-  Avatar,
-  Box,
   Button,
   Chip,
   CircularProgress,
@@ -36,15 +34,12 @@ export const ProjectsPage: React.FC = () => {
   const [imageUrls, setImageUrls] = useState<Map<string, string>>(new Map());
   const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
 
-  // RTK Query хуки
   const { data: projects = [], isLoading, error } = useGetProjectsQuery();
   const [deleteProject, { isLoading: isDeleting }] = useDeleteProjectMutation();
   const [fetchImageBlob] = useLazyGetImageBlobQuery();
 
-  // Загрузка изображения для строки таблицы
   const loadImageForProject = async (projectId: string, imageId: string) => {
-    if (imageUrls.has(imageId)) return;
-    if (loadingImages.has(imageId)) return;
+    if (imageUrls.has(imageId) || loadingImages.has(imageId)) return;
 
     setLoadingImages((prev) => new Set(prev).add(imageId));
 
@@ -63,67 +58,59 @@ export const ProjectsPage: React.FC = () => {
     }
   };
 
-  // Загружаем изображения для всех проектов при получении списка
   useEffect(() => {
-    if (projects.length > 0) {
-      projects.forEach((project) => {
-        if (project.images && project.images[0]) {
-          loadImageForProject(project.id, project.images[0].id);
-        }
-      });
-    }
+    projects.forEach((project) => {
+      if (project.images?.[0]) {
+        loadImageForProject(project.id, project.images[0].id);
+      }
+    });
   }, [projects]);
 
-  // Очищаем URL при размонтировании
   useEffect(() => {
-    return () => {
-      imageUrls.forEach((url) => URL.revokeObjectURL(url));
-    };
+    return () => imageUrls.forEach((url) => URL.revokeObjectURL(url));
   }, []);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm('Вы уверены, что хотите удалить проект?')) {
-      try {
-        await deleteProject(id).unwrap();
-        const project = projects.find((p) => p.id === id);
-        if (project?.images?.[0]) {
-          const imageId = project.images[0].id;
-          const url = imageUrls.get(imageId);
-          if (url) {
-            URL.revokeObjectURL(url);
-            setImageUrls((prev) => {
-              const newMap = new Map(prev);
-              newMap.delete(imageId);
-              return newMap;
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Ошибка удаления:', error);
+    if (!window.confirm('Вы уверены, что хотите удалить проект?')) return;
+
+    try {
+      await deleteProject(id).unwrap();
+      const project = projects.find((p) => p.id === id);
+      const imageId = project?.images?.[0]?.id;
+      if (imageId) {
+        const url = imageUrls.get(imageId);
+        if (url) URL.revokeObjectURL(url);
+        setImageUrls((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(imageId);
+          return newMap;
+        });
       }
+    } catch (error) {
+      console.error('Ошибка удаления:', error);
     }
   };
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      <div className="flex justify-center mt-8">
         <CircularProgress />
-      </Box>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Box sx={{ p: 3 }}>
+      <div className="p-4">
         <Alert severity="error">Ошибка загрузки проектов: {JSON.stringify(error)}</Alert>
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between items-center">
         <Typography variant="h5">Проекты</Typography>
         <Button
           variant="contained"
@@ -132,18 +119,24 @@ export const ProjectsPage: React.FC = () => {
         >
           Создать проект
         </Button>
-      </Box>
+      </div>
 
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="таблица проектов">
+        <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Изображение</TableCell>
+              <TableCell className="w-20">Фото</TableCell>
               <TableCell>Название</TableCell>
               <TableCell>Описание</TableCell>
-              <TableCell align="center">Изображения</TableCell>
-              <TableCell align="center">Документы</TableCell>
-              <TableCell align="center">Действия</TableCell>
+              <TableCell align="center" className="w-24">
+                Фото
+              </TableCell>
+              <TableCell align="center" className="w-24">
+                Доки
+              </TableCell>
+              <TableCell align="center" className="w-36">
+                Действия
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -154,54 +147,40 @@ export const ProjectsPage: React.FC = () => {
               const isLoadingImage = imageId ? loadingImages.has(imageId) : false;
 
               return (
-                <TableRow
-                  key={project.id}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    <Box
-                      sx={{
-                        width: 60,
-                        height: 60,
-                        bgcolor: 'grey.200',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 1,
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                      }}
+                <TableRow key={project.id}>
+                  <TableCell>
+                    <div
+                      className="w-14 h-14 bg-gray-100 rounded flex items-center justify-center cursor-pointer overflow-hidden"
                       onClick={() => navigate({ to: `/projects/${project.id}` })}
                     >
                       {firstImage && imageUrl ? (
-                        <Avatar
+                        <img
                           src={imageUrl}
                           alt={project.name}
-                          variant="square"
-                          sx={{ width: 60, height: 60 }}
+                          className="w-full h-full object-cover"
                         />
                       ) : isLoadingImage ? (
-                        <CircularProgress size={24} />
+                        <CircularProgress size={20} />
                       ) : (
-                        <ImageIcon sx={{ fontSize: 30, color: 'grey.400' }} />
+                        <ImageIcon className="text-gray-400" fontSize="small" />
                       )}
-                    </Box>
+                    </div>
                   </TableCell>
 
                   <TableCell>
-                    <Typography
-                      sx={{ cursor: 'pointer', fontWeight: 500 }}
+                    <span
+                      className="font-medium cursor-pointer hover:underline"
                       onClick={() => navigate({ to: `/projects/${project.id}` })}
                     >
                       {project.name}
-                    </Typography>
+                    </span>
                   </TableCell>
 
                   <TableCell>
-                    <Typography variant="body2" color="text.secondary">
-                      {project.description?.substring(0, 50)}
+                    <span className="text-sm text-gray-600">
+                      {project.description?.slice(0, 50)}
                       {project.description?.length && project.description.length > 50 ? '...' : ''}
-                    </Typography>
+                    </span>
                   </TableCell>
 
                   <TableCell align="center">
@@ -222,14 +201,14 @@ export const ProjectsPage: React.FC = () => {
                     />
                   </TableCell>
 
-                  <TableCell align="center">
+                  <TableCell align="center" className="space-x-1">
                     <IconButton
                       size="small"
                       color="primary"
                       onClick={() => navigate({ to: `/projects/${project.id}` })}
                       title="Просмотр"
                     >
-                      <Visibility />
+                      <Visibility fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
@@ -237,7 +216,7 @@ export const ProjectsPage: React.FC = () => {
                       onClick={() => navigate({ to: `/projects/${project.id}/edit` })}
                       title="Редактировать"
                     >
-                      <Edit />
+                      <Edit fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
@@ -246,7 +225,7 @@ export const ProjectsPage: React.FC = () => {
                       disabled={isDeleting}
                       title="Удалить"
                     >
-                      <Delete />
+                      <Delete fontSize="small" />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -255,6 +234,6 @@ export const ProjectsPage: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-    </Box>
+    </div>
   );
 };
