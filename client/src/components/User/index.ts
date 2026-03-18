@@ -1,1 +1,2 @@
-export * from "./UserDetails";
+export * from './EmployeeDetails';
+export * from './EmployeeList';

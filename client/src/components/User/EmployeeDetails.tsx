@@ -1,28 +1,17 @@
-import { Typography, Box, Chip } from "@mui/material";
 import {
-  Email as EmailIcon,
-  Phone as PhoneIcon,
-  Person as PersonIcon,
+  AdminPanelSettings as AdminIcon,
   Badge as BadgeIcon,
   CalendarToday as CalendarIcon,
-  AdminPanelSettings as AdminIcon,
-} from "@mui/icons-material";
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
+  Email as EmailIcon,
+  Person as PersonIcon,
+  Phone as PhoneIcon,
+} from '@mui/icons-material';
+import { Box, Chip, Typography } from '@mui/material';
+import { useParams } from '@tanstack/react-router';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
+import { useGetAllUsersQuery } from '../../services';
 
-interface UserCardProps {
-  user: {
-    id: string | number;
-    avatar?: string;
-    firstName?: string;
-    lastName?: string;
-    username: string;
-    email: string;
-    phone?: string;
-    role?: string | string[];
-    createdAt?: string;
-  } | null;
-}
 const InfoItem = ({
   icon,
   label,
@@ -39,20 +28,30 @@ const InfoItem = ({
         {label}
       </Typography>
       <Typography variant="body1" className="font-medium">
-        {value || "—"}
+        {value || '—'}
       </Typography>
     </Box>
   </Box>
 );
-export function UserDetails({ user }: UserCardProps) {
+export function EmployeeDetails() {
+  const { employeeId } = useParams({ from: '/employees/$employeeId' });
+  const { data } = useGetAllUsersQuery();
+
+  const user = data?.find((u) => String(u.id) === String(employeeId));
+
+  if (!user) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography color="text.secondary">Загрузка… или сотрудник не найден</Typography>
+      </Box>
+    );
+  }
+
   if (!user) return null;
 
-  const fullName =
-    `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Пользователь";
+  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Пользователь';
   const roles = Array.isArray(user.role) ? user.role : [user.role];
-  const isAdmin = roles.some(
-    role => role?.toUpperCase?.() === "ADMIN" || role === "admin",
-  );
+  const isAdmin = roles.some((role) => role?.toUpperCase?.() === 'ADMIN' || role === 'admin');
 
   return (
     <Box className="bg-white flex flex-col gap-6 p-6 relative">
@@ -60,7 +59,7 @@ export function UserDetails({ user }: UserCardProps) {
       <Box className="flex flex-row gap-4 items-start">
         <div className="w-24 h-24 overflow-hidden rounded-sm shrink-0">
           <img
-            src={user.avatar || "/default-avatar.png"}
+            src={user.avatar || '/default-avatar.png'}
             alt={fullName}
             className="w-full h-full object-cover"
           />
@@ -86,7 +85,7 @@ export function UserDetails({ user }: UserCardProps) {
             )}
             {roles.map(
               (role, index) =>
-                role?.toUpperCase?.() === "USER" && (
+                role?.toUpperCase?.() === 'USER' && (
                   <Chip
                     key={index}
                     label="Пользователь"
@@ -94,7 +93,7 @@ export function UserDetails({ user }: UserCardProps) {
                     variant="outlined"
                     className="border-green-600"
                   />
-                ),
+                )
             )}
           </Box>
         </Box>
@@ -102,37 +101,17 @@ export function UserDetails({ user }: UserCardProps) {
 
       {/* Информация о пользователе */}
       <Box className="flex flex-col gap-3 mt-2">
-        <InfoItem
-          icon={<EmailIcon fontSize="small" />}
-          label="Email"
-          value={user.email}
-        />
-        <InfoItem
-          icon={<PhoneIcon fontSize="small" />}
-          label="Телефон"
-          value={user.phone}
-        />
-        <InfoItem
-          icon={<BadgeIcon fontSize="small" />}
-          label="Username"
-          value={user.username}
-        />
-        <InfoItem
-          icon={<PersonIcon fontSize="small" />}
-          label="Имя"
-          value={user.firstName}
-        />
-        <InfoItem
-          icon={<PersonIcon fontSize="small" />}
-          label="Фамилия"
-          value={user.lastName}
-        />
+        <InfoItem icon={<EmailIcon fontSize="small" />} label="Email" value={user.email} />
+        <InfoItem icon={<PhoneIcon fontSize="small" />} label="Телефон" value={user.phone} />
+        <InfoItem icon={<BadgeIcon fontSize="small" />} label="Username" value={user.username} />
+        <InfoItem icon={<PersonIcon fontSize="small" />} label="Имя" value={user.firstName} />
+        <InfoItem icon={<PersonIcon fontSize="small" />} label="Фамилия" value={user.lastName} />
         <InfoItem
           icon={<CalendarIcon fontSize="small" />}
           label="Зарегистрирован"
           value={
             user.createdAt
-              ? format(new Date(user.createdAt), "d MMMM yyyy", {
+              ? format(new Date(user.createdAt), 'd MMMM yyyy', {
                   locale: ru,
                 })
               : undefined
